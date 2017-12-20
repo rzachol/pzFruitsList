@@ -5,13 +5,13 @@ from PyQt4.QtGui import *
 
 class StringListDlg(QDialog):
 
-    def __init__(self, title, stringList, parent=None):
+    def __init__(self, title, stringlist, parent=None):
         super(StringListDlg, self).__init__(parent)
         #
         self.name = title
         self.stringListWidget = QListWidget()
-        self.stringListWidget.addItems(stringList)
-        if stringList:
+        self.stringListWidget.addItems(stringlist)
+        if stringlist:
             self.stringListWidget.setCurrentRow(0)
         #
         self.addButton = QPushButton("&Add...")
@@ -40,16 +40,14 @@ class StringListDlg(QDialog):
         self.connect(self.sortButton, SIGNAL("clicked()"), self.stringListWidget.sortItems)
         self.connect(self.closeButton, SIGNAL("clicked()"), self.accept)
         self.connect(self.removeButton, SIGNAL("clicked()"), self.remove)
+        self.connect(self.addButton, SIGNAL("clicked()"), self.add)
+        self.connect(self.editButton, SIGNAL("clicked()"), self.edit)
+        self.connect(self.upButton, SIGNAL("clicked()"), self.up)
+        self.connect(self.downButton, SIGNAL("clicked()"), self.down)
 
-        ##        self.connect(self.rateSpinBox, SIGNAL("valueChanged(double)"),
-        ##                     self.updateUi)
-        ##        self.connect(self.yearsComboBox, SIGNAL("currentIndexChanged(int)"),
-        ##                     self.updateUi)
-        ##
 
     def reject(self):
         self.accept()
-
 
     def accept(self):
         self.stringlist = []
@@ -68,11 +66,40 @@ class StringListDlg(QDialog):
             item = self.stringListWidget.takeItem(row)
             del item
 
-##    def updateUi(self):
-##        amount = self.principalSpinBox.value() * \
-##                ((1 + self.rateSpinBox.value()/100) ** (self.yearsComboBox.currentIndex() + 1))
-##        self.amountResult.setText("{0:.2f}".format(amount))
-##       
+    def add(self):
+        text, ok = QInputDialog.getText(self, "Add {}".format(self.name), "Add {}".format(self.name))
+        if ok and text:
+            row = self.stringListWidget.currentRow()
+            self.stringListWidget.insertItem(row, text)
+
+    def edit(self):
+        row = self.stringListWidget.currentRow()
+        item = self.stringListWidget.item(row)
+        if item is None:
+            return
+        txt, ok = QInputDialog.getText(self, "Edit {}".format(self.name), "Edit {}".format(self.name), text=item.text())
+        if ok and txt:
+            item.setText(txt)
+
+    def up(self):
+        row = self.stringListWidget.currentRow()
+        item = self.stringListWidget.item(row)
+        if item is None or not row:
+            return
+        item = self.stringListWidget.takeItem(row)
+        self.stringListWidget.insertItem(row - 1, item)
+        self.stringListWidget.setCurrentItem(item)
+
+    def down(self):
+        row = self.stringListWidget.currentRow()
+        item = self.stringListWidget.item(row)
+        if item is None or (row == self.stringListWidget.count() - 1):
+            return
+        item = self.stringListWidget.takeItem(row)
+        self.stringListWidget.insertItem(row + 1, item)
+        self.stringListWidget.setCurrentItem(item)
+
+
 if __name__ == "__main__":
     fruit = ["Banana", "Apple", "Elderberry", "Clementine", "Fig",
              "Guava", "Mango", "Honeydew Mellon", "Date", "Watermelon",
